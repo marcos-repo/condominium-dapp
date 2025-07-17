@@ -10,7 +10,7 @@ function Login() {
   function btnLoginClick() {
     login()
       .then(() => {
-        navigate("/topics");
+          navigate("/topics");
       })
       .catch((error) => {
         setMessage(error.message);

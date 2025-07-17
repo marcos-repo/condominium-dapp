@@ -2,19 +2,10 @@ import {Route, BrowserRouter, Routes, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Topics from '../pages/Topics';
 import type { JSX } from 'react';
+import { getLoginData, isManager, logOut } from '../services/LoginData';
+import Transfer from '../pages/Transfer';
 
 
-export type LoginResult = {
-    account: string;
-    isAdmin: boolean;
-};
-
-export function getLoginData() : LoginResult | undefined {
-    const loginDataStorage = localStorage.getItem("loginData");
-    return loginDataStorage ? 
-                    JSON.parse(loginDataStorage) as LoginResult : 
-                    undefined;
-}
 
 function Router() {
 
@@ -25,7 +16,18 @@ function Router() {
     function PrivateRoute({children}: Props) {
         const loginData = getLoginData();
 
-        return loginData == undefined ? <Navigate to="/" /> : children
+        return loginData === undefined ? <Navigate to="/" /> : children
+    }
+
+    function ManagerRoute({children}: Props) {
+        const loginData = getLoginData();
+        const isAuth = loginData !== undefined;
+        
+        if(isAuth && isManager())
+            return children;
+
+        logOut();
+        return <Navigate to="/" />;
     }
 
 
@@ -37,6 +39,11 @@ function Router() {
                     <PrivateRoute>
                         <Topics />
                     </PrivateRoute>
+                } />
+                <Route path="/transfer" element={
+                    <ManagerRoute>
+                        <Transfer />
+                    </ManagerRoute>
                 } />
             </Routes>
         </BrowserRouter>
