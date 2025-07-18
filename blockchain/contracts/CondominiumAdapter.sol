@@ -97,6 +97,26 @@ contract CondominiumAdapter {
         emit Transfer(receipt.to, receipt.amount, receipt.topic);
     }
 
+    function getResident(address resident) external view initialized returns(lib.Resident memory) {
+        return condominium.getResident(resident);
+    }
+
+    function getResidents(uint page, uint pageSize) external view initialized returns(lib.ResidentPage memory) {
+        return condominium.getResidents(page, pageSize);
+    }
+
+    function getTopic(string memory title) external view initialized returns(lib.Topic memory) {
+        return condominium.getTopic(title);
+    }
+
+    function getTopics(uint page, uint pageSize) external view initialized returns(lib.TopicPage memory) {
+        return condominium.getTopics(page, pageSize);
+    }
+
+    function getVotes(string memory topicTitle) external view returns(lib.Vote[] memory) {
+        return condominium.getVotes(topicTitle);
+    }
+
 
     event QuotaChanged(uint amount);
 

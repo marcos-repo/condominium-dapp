@@ -37,4 +37,14 @@ interface ICondominium {
 
     function transfer(string memory topicTitle, uint amount) 
         external returns (lib.TransferReceipt memory);
+
+    function getResident(address resident) external view returns(lib.Resident memory);
+
+    function getResidents(uint page, uint pageSize) external view returns(lib.ResidentPage memory);
+
+    function getTopic(string memory title) external view returns(lib.Topic memory);
+
+    function getTopics(uint page, uint pageSize) external view returns(lib.TopicPage memory);
+
+    function getVotes(string memory topicTitle) external view returns(lib.Vote[] memory);
 }
