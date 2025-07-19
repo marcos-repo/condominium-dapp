@@ -18,6 +18,21 @@ export function isManager() : boolean {
     return loginData !== undefined ? loginData.profile === Profile.MANAGER : false;
 }
 
+export function isCouncil() : boolean {
+    const loginData = getLoginData();
+    return loginData !== undefined ? loginData.profile === Profile.COUNSELOR : false;
+}
+
+export function isResident() : boolean {
+    const loginData = getLoginData();
+    return loginData !== undefined ? loginData.profile === Profile.RESIDENT : false;
+}
+
+export function getProfile() : Profile {
+    const loginData = getLoginData();
+    return loginData !== undefined ? loginData.profile : Profile.RESIDENT;
+}
+
 export function logOut(){
     localStorage.removeItem("loginData");
 }

@@ -1,8 +1,10 @@
-import React from "react";
+import SideBar from "../components/SideBar";
 
 function Topics() {
     return (
-        <div><h1>Topics</h1></div>
+        <>
+            <SideBar />
+        </>
     )
 }
 

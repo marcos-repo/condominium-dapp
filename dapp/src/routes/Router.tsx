@@ -2,7 +2,7 @@ import {Route, BrowserRouter, Routes, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Topics from '../pages/Topics';
 import type { JSX } from 'react';
-import { getLoginData, isManager, logOut } from '../services/LoginData';
+import { getLoginData, isCouncil, isManager, logOut } from '../services/LoginData';
 import Transfer from '../pages/Transfer';
 
 
@@ -24,6 +24,28 @@ function Router() {
         const isAuth = loginData !== undefined;
         
         if(isAuth && isManager())
+            return children;
+
+        logOut();
+        return <Navigate to="/" />;
+    }
+
+    function CouncilRoute({children}: Props) {
+        const loginData = getLoginData();
+        const isAuth = loginData !== undefined;
+        
+        if(isAuth && isCouncil())
+            return children;
+
+        logOut();
+        return <Navigate to="/" />;
+    }
+
+    function ResidentRoute({children}: Props) {
+        const loginData = getLoginData();
+        const isAuth = loginData !== undefined;
+        
+        if(isAuth && isResident())
             return children;
 
         logOut();
