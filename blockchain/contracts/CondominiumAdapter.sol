@@ -113,7 +113,7 @@ contract CondominiumAdapter {
         return condominium.getTopics(page, pageSize);
     }
 
-    function getVotes(string memory topicTitle) external view returns(lib.Vote[] memory) {
+    function getVotes(string memory topicTitle) external view initialized returns(lib.Vote[] memory) {
         return condominium.getVotes(topicTitle);
     }
 

@@ -95,11 +95,13 @@ contract Condominium is ICondominium {
     }
 
     function getResidents(uint page, uint pageSize) external view returns(lib.ResidentPage memory) {
-        lib.Resident[] memory result = new lib.Resident[](pageSize);
+        uint resultSize = residents.length > pageSize ? pageSize : residents.length;
+
+        lib.Resident[] memory result = new lib.Resident[](resultSize);
         uint skip = ((page - 1) * pageSize);
         uint index = 0;
 
-        for (uint i = skip; i < (skip + pageSize) && i < residents.length; i++) {
+        for (uint i = skip; i < resultSize; i++) {
             result[index++] = _getResident(residents[i].wallet);
         }
 
@@ -204,11 +206,13 @@ contract Condominium is ICondominium {
     }
 
     function _getTopics(uint page, uint pageSize) private view returns(lib.TopicPage memory) {
-        lib.Topic[] memory result = new lib.Topic[](pageSize);
+        uint resultSize = topics.length > pageSize ? pageSize : topics.length;
+
+        lib.Topic[] memory result = new lib.Topic[](resultSize);
         uint skip = ((page - 1) * pageSize);
         uint index = 0;
 
-        for (uint i = skip; i < (skip + pageSize) && i < topics.length; i++) {
+        for (uint i = skip; i < resultSize; i++) {
             result[index++] = topics[i];
         }
 

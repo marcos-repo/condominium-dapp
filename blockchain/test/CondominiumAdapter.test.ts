@@ -32,7 +32,7 @@ describe("Condominium Adapter", function () {
       CHANGE_MANAGER = 3
   }
 
-  const topicTitle = "tipico 1";
+  const topicTitle = "topico 1";
   const description = "descricao topico 1";
 
   async function addResidents(adapter: CondominiumAdapter, count: number, accounts: SignerWithAddress[]) {
@@ -153,6 +153,52 @@ describe("Condominium Adapter", function () {
       .revertedWith("Contrato nao inicializado");
     });
 
+    it("Should get resident", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+      const { implementation } = await loadFixture(deployImplementationFixture);
+
+      await adapter.init(implementation);
+      
+      await adapter.addResident(accounts[1].address, 1301);
+
+      const resident = await adapter.getResident(accounts[1].address);
+
+      expect(resident.residence).eq(1301);
+    });
+
+    it("Should NOT get resident(init)", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+
+      await expect(adapter.getResident(accounts[1].address))
+      .to
+      .be
+      .revertedWith("Contrato nao inicializado");
+    });
+
+    it("Should get residents", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+      const { implementation } = await loadFixture(deployImplementationFixture);
+
+      await adapter.init(implementation);
+      
+      await adapter.addResident(accounts[1].address, 1301);
+      await adapter.addResident(accounts[2].address, 1302);
+      await adapter.addResident(accounts[3].address, 1303);
+
+      const result = await adapter.getResidents(1,10);
+
+      expect(result.residents.length).eq(3);
+    });
+
+    it("Should NOT get residents(init)", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+
+      await expect(adapter.getResidents(1,1))
+      .to
+      .be
+      .revertedWith("Contrato nao inicializado");
+    });
+
     it("Should remove resident", async function () {
       const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
       const { implementation } = await loadFixture(deployImplementationFixture);
@@ -183,13 +229,60 @@ describe("Condominium Adapter", function () {
 
       await adapter.setCounselor(accounts[1].address, true);
 
-      expect(await implementation.counselors(accounts[1].address)).eq(true);
+      const resident = await adapter.getResident(accounts[1].address);
+
+      expect(resident.isCounselor).eq(true);
     });
 
     it("Should NOT set counselor", async function () {
       const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
 
       await expect(adapter.setCounselor(accounts[1].address, true))
+      .to
+      .be
+      .revertedWith("Contrato nao inicializado");
+    });
+
+    it("Should get topic", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+      const { implementation } = await loadFixture(deployImplementationFixture);
+
+      await adapter.init(implementation);
+      await adapter.addTopic(topicTitle, "", Category.DECISION, 0, manager.address);
+
+      const topic = await adapter.getTopic(topicTitle);
+
+      expect(topic.title).eq(topicTitle);
+    });
+
+    it("Should NOT get topic", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+
+      await expect(adapter.getTopic(topicTitle))
+      .to
+      .be
+      .revertedWith("Contrato nao inicializado");
+    });
+
+
+    it("Should get topics", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+      const { implementation } = await loadFixture(deployImplementationFixture);
+
+      await adapter.init(implementation);
+      await adapter.addTopic(topicTitle + "1", "", Category.DECISION, 0, manager.address);
+      await adapter.addTopic(topicTitle + "2", "", Category.DECISION, 0, manager.address);
+      await adapter.addTopic(topicTitle + "3", "", Category.DECISION, 0, manager.address);
+
+      const result = await adapter.getTopics(1,10);
+
+      expect(result.topics.length).eq(3);
+    });
+
+    it("Should NOT get topics", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+
+      await expect(adapter.getTopics(1,1))
       .to
       .be
       .revertedWith("Contrato nao inicializado");
@@ -399,6 +492,32 @@ describe("Condominium Adapter", function () {
       const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
 
       await expect(adapter.voteCount(topicTitle))
+      .to
+      .be
+      .revertedWith("Contrato nao inicializado");
+    });
+
+
+    it("Should get votes", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+      const { implementation } = await loadFixture(deployImplementationFixture);
+
+      await adapter.init(implementation);
+      await adapter.addTopic(topicTitle, "", Category.DECISION, 0, manager.address);
+      await adapter.openVoting(topicTitle);
+
+      await addResidents(adapter, 5, accounts);
+      await addVotes(adapter, 5, accounts, Options.NO);
+
+      const votes = await adapter.getVotes(topicTitle);
+
+      expect(votes.length).eq(5);
+    });
+
+    it("Should NOT get votes", async function () {
+      const { adapter, manager, accounts} = await loadFixture(deployAdapterFixture);
+
+      await expect(adapter.getVotes(topicTitle))
       .to
       .be
       .revertedWith("Contrato nao inicializado");
