@@ -4,6 +4,7 @@ import Topics from '../pages/Topics';
 import type { JSX } from 'react';
 import { getLoginData, isCouncil, isManager, logOut } from '../services/LoginData';
 import Transfer from '../pages/Transfer';
+import Settings from '../pages/Settings';
 
 
 
@@ -65,6 +66,11 @@ function Router() {
                 <Route path="/transfer" element={
                     <ManagerRoute>
                         <Transfer />
+                    </ManagerRoute>
+                } />
+                <Route path="/settings" element={
+                    <ManagerRoute>
+                        <Settings />
                     </ManagerRoute>
                 } />
             </Routes>

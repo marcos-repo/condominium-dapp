@@ -33,6 +33,11 @@ export function getProfile() : Profile {
     return loginData !== undefined ? loginData.profile : Profile.RESIDENT;
 }
 
+export function getLoginAccount() : string | undefined {
+    const loginData = getLoginData();
+    return loginData !== undefined ? loginData.account : undefined;
+}
+
 export function logOut(){
     localStorage.removeItem("loginData");
 }

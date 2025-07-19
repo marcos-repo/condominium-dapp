@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import CondominiumABI from "../contracts/abi/Condominium.abi.json";
-import { getLoginData, type LoginResult } from "./LoginData";
+import { getLoginAccount, getLoginData, getProfile, type LoginResult } from "./LoginData";
+import { Contract } from "ethers";
 
 const CONTRACT_ADDRESS =  import.meta.env.VITE_CONTRACT_ADDRESS;
 
@@ -32,6 +33,19 @@ function getContract(provider? : ethers.BrowserProvider) : ethers.Contract {
         provider = getProvider();
 
     return new ethers.Contract(CONTRACT_ADDRESS, CondominiumABI, provider);
+}
+
+async function getContractSigner(provider? : ethers.BrowserProvider) : Promise<ethers.Contract> {
+    if(!provider)
+        provider = getProvider();
+
+    const signer = await provider.getSigner(getLoginAccount());
+
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, CondominiumABI, provider);
+
+    console.log(contract);
+
+    return contract.connect(signer) as ethers.Contract;
 }
 
 export async function login() : Promise<LoginResult> {
@@ -78,6 +92,20 @@ export async function login() : Promise<LoginResult> {
     localStorage.setItem("loginData", JSON.stringify(result) );
 
     return result;
+}
+
+export async function getAddress(): Promise<string> {
+    const contract = getContract();
+    return await contract.getImplementationAddress();
+}
+
+export async function updagraContract(address: string): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
+
+    const contract = await getContractSigner();
+    
+    return await contract.init(address) as ethers.Transaction;
+
 }
 
 function compareEthAccounts(account1: string, account2: string) : boolean {
