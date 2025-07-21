@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import {getAddress, updagraContract} from "../services/Web3Service";
 import Footer from "../components/Footer";
+import Loader from "../components/Loader";
 
 function Settings() {
 
@@ -52,17 +53,7 @@ function Settings() {
                             </div>
                             <div className="card-body px-0 pb-2">
                                 {
-                                    isLoading ? 
-                                    <>
-                                        <div className="row ms-3">
-                                            <div className="col-md-6 mb-3">
-                                                <p>
-                                                    <i className="material-icons opacity-10 me-2">hourglass_empty</i>
-                                                    Carregando...
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </> : <></>
+                                    isLoading ? <Loader /> : <></>
                                 }
                                 <div className="row ms-3">
                                     <div className="col-md-6 mb-3">
