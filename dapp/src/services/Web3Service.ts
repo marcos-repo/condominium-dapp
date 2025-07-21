@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import CondominiumABI from "../contracts/abi/Condominium.abi.json";
 import { getLoginAccount, getLoginData, getProfile, type LoginResult } from "./LoginData";
 import { Contract } from "ethers";
+import Resident from "../pages/Residents/Resident";
 
 const CONTRACT_ADDRESS =  import.meta.env.VITE_CONTRACT_ADDRESS;
 
@@ -99,13 +100,66 @@ export async function getAddress(): Promise<string> {
     return await contract.getImplementationAddress();
 }
 
-export async function updagraContract(address: string): Promise<ethers.Transaction> {
+export async function upgradeContract(address: string): Promise<ethers.Transaction> {
     if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
 
     const contract = await getContractSigner();
     
     return await contract.init(address) as ethers.Transaction;
 
+}
+
+export async function addResident(wallet: string, residenceId: number): Promise<ethers.Transaction> {
+    if(getProfile() === Profile.RESIDENT) throw new Error("Somente o síndico ou um Conselheiro podem executar esta operação.");
+
+    const contract = await getContractSigner();
+    
+    return await contract.addResident(wallet, residenceId) as ethers.Transaction;
+}
+
+export async function removeResident(wallet: string): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
+
+    const contract = await getContractSigner();
+    
+    return await contract.removeResident(wallet) as ethers.Transaction;
+}
+
+export async function setCounselor(wallet: string, isEntering: boolean): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
+
+    const contract = await getContractSigner();
+    console.log("contract",contract);
+    
+    return await contract.setCounselor(wallet, isEntering) as ethers.Transaction;
+}
+
+export type ResidentPage = {
+    residents: Resident[];
+    totalCount: ethers.BigNumberish;
+}
+
+export async function getResident(wallet: string): Promise<Resident> {
+    const contract = getContract();
+    return await contract.getResident(wallet) as Resident;
+}
+
+export async function getResidents(page: number = 1, pageSize: number = 10): Promise<ResidentPage> {
+    const contract = getContract();
+    const result = await contract.getResidents(page, pageSize) as ResidentPage;
+
+    const residentsArr = [... result.residents];
+
+    const residents = residentsArr
+    .filter(r => r.residence > 0)
+    .sort((a,b) => {
+        return a.residence > b.residence ? 1 : -1;
+    });
+
+    return {
+        residents,
+        totalCount: result.totalCount
+    } as ResidentPage;
 }
 
 function compareEthAccounts(account1: string, account2: string) : boolean {

@@ -2,9 +2,11 @@ import {Route, BrowserRouter, Routes, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Topics from '../pages/Topics';
 import type { JSX } from 'react';
-import { getLoginData, isCouncil, isManager, logOut } from '../services/LoginData';
+import { getLoginData, isCouncil, isManager, isResident, logOut } from '../services/LoginData';
 import Transfer from '../pages/Transfer';
 import Settings from '../pages/Settings';
+import Residents from '../pages/Residents/Index';
+import Resident from '../pages/Residents/Resident';
 
 
 
@@ -35,7 +37,7 @@ function Router() {
         const loginData = getLoginData();
         const isAuth = loginData !== undefined;
         
-        if(isAuth && isCouncil())
+        if(isAuth && (isManager() || isCouncil()))
             return children;
 
         logOut();
@@ -62,6 +64,21 @@ function Router() {
                     <PrivateRoute>
                         <Topics />
                     </PrivateRoute>
+                } />
+                <Route path="/residents" element={
+                    <CouncilRoute>
+                        <Residents />
+                    </CouncilRoute>
+                } />
+                <Route path="/residents/new" element={
+                    <CouncilRoute>
+                        <Resident />
+                    </CouncilRoute>
+                } />
+                <Route path="/residents/edit/:wallet" element={
+                    <ManagerRoute>
+                        <Resident />
+                    </ManagerRoute>
                 } />
                 <Route path="/transfer" element={
                     <ManagerRoute>

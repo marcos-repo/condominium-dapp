@@ -56,7 +56,7 @@ function ResidentRow(props: Props) {
                     {
                         isManager() ? (
                             <>
-                                <a href={"/residents/edit" + props.data.wallet} className="btn btn-info btn-sm me-1">
+                                <a href={"/residents/edit/" + props.data.wallet} className="btn btn-info btn-sm me-1">
                                     <i className="material-icons text-sm">edit</i>
                                 </a>
                                 <a href="#" className="btn btn-danger btn-sm me-1" onClick={btnDeleteClick}>

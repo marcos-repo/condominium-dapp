@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
-import {getAddress, updagraContract} from "../services/Web3Service";
+import {getAddress, upgradeContract} from "../services/Web3Service";
 import Footer from "../components/Footer";
 import Loader from "../components/Loader";
 
@@ -27,7 +27,7 @@ function Settings() {
     function btnSaveClick() {
         setMessage("Salvando configurações. Aguarde...");
 
-        updagraContract(contract).then(() => {
+        upgradeContract(contract).then(() => {
             setMessage("Configurações salvas! Aguarde alguns instantes para serem propagadas pela rede.");
         })
         .catch((error) => {
