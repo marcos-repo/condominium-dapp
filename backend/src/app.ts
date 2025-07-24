@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import errorMiddleware from './middlewares/errorMiddleware';
+import ResidentRouter from './routers/ResidentRouter';
 
 const app = express();
 
@@ -16,8 +17,9 @@ app.use(cors({
 
 app.use(express.json());
 
+app.use('/residents/', ResidentRouter);
 app.use('/', (req: Request, res: Response, next: NextFunction) => {
-    res.send('OK');
+    res.send('{ status: OK }');
 })
 
 app.use(errorMiddleware);
