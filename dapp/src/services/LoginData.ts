@@ -3,6 +3,7 @@ import { Profile } from "./Web3Service";
 export type LoginResult = {
     account: string;
     profile: number;
+    token: string;
 };
 
 
@@ -31,6 +32,11 @@ export function isResident() : boolean {
 export function getProfile() : Profile {
     const loginData = getLoginData();
     return loginData !== undefined ? loginData.profile : Profile.RESIDENT;
+}
+
+export function getToken() : string {
+    const loginData = getLoginData();
+    return loginData !== undefined ? loginData.token : "";
 }
 
 export function getLoginAccount() : string | undefined {

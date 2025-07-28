@@ -42,19 +42,16 @@ function Residents() {
     const query = useQuery();
 
     useEffect(() => {
-        console.log(query.get("page"));
         const page = parseInt(query.get("page") || "1");
         setIsLoading(true);
-        console.log(page);
-        getResidents(page, 2)
+        getResidents(1, 20)
             .then((r)=> {
-                console.log(r);
                 setResidents(r.residents);
                 setCount(toNumber(r.totalCount));
             })
             .catch((error) => {
                 setError(error.message);
-                console.log(error)
+                console.error(error)
             })
             .finally(() => setIsLoading(false));
 
@@ -118,7 +115,7 @@ function Residents() {
                         }
                         </tbody>
                         </table>
-                        <Pagination pageSize={2} count={count} />
+                        <Pagination pageSize={20} count={count} />
                     </div>
                     <div className="row ms-2">
                         <div className="col-md-12 mb-3 mt-5">

@@ -80,7 +80,6 @@ function Resident() {
                 );
             }
             else {
-                console.log(resident);
                 setCounselor(resident.wallet, resident.isCounselor)
                 .then((tx) => {
                     navigate("/residents?tx=" + tx.hash);

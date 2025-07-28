@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
 import CondominiumABI from "../contracts/abi/Condominium.abi.json";
 import { getLoginAccount, getLoginData, getProfile, type LoginResult } from "./LoginData";
-import { Contract } from "ethers";
 import Resident from "../pages/Residents/Resident";
+import { loginApi } from "./ApiService";
 
 const CONTRACT_ADDRESS =  import.meta.env.VITE_CONTRACT_ADDRESS;
 
@@ -44,12 +44,11 @@ async function getContractSigner(provider? : ethers.BrowserProvider) : Promise<e
 
     const contract = new ethers.Contract(CONTRACT_ADDRESS, CondominiumABI, provider);
 
-    console.log(contract);
-
     return contract.connect(signer) as ethers.Contract;
 }
 
 export async function login() : Promise<LoginResult> {
+
     const provider = getProvider();
     const accounts = await provider.send("eth_requestAccounts", []);
 
@@ -64,30 +63,33 @@ export async function login() : Promise<LoginResult> {
     const resident = await contract.getResident(localAccount) as Resident;
     let isManager = resident.isManager;
 
-    console.log("resident", resident);
-
-    console.log("isManager | resident.residence > 0", isManager , resident.residence);
     if(!isManager && resident.residence > 0) {
         profile = resident.isCounselor ? Profile.COUNSELOR : Profile.RESIDENT;
-    }
-    
+    }    
     else if (!isManager && !resident.residence) {
         const managerAccount : string = (await contract.getManager());
         isManager = compareEthAccounts(localAccount,  managerAccount);
     }
 
-    console.log("compareEthAccounts(localAccount,  managerAccount)",localAccount,  await contract.getManager());
-
     if(isManager) {
         profile = Profile.MANAGER 
     }
-    else if(getLoginData() === undefined) {
-        throw new Error("Unauthorized");
-    }
+    // else if(getLoginData() === undefined) {
+    //     throw new Error("Unauthorized");
+    // }
+
+
+    const signer = await provider.getSigner();
+    const timestamp = Date.now();
+    const message = `Autenticando em Condominium App. Timestamp: ${timestamp}`;
+    const secret = await signer.signMessage(message);
+
+    const token = await loginApi(localAccount, secret, timestamp);
 
     const result = {
+        token,
         account: localAccount,
-        profile: profile
+        profile
     } as LoginResult;
 
     localStorage.setItem("loginData", JSON.stringify(result) );
@@ -129,7 +131,6 @@ export async function setCounselor(wallet: string, isEntering: boolean): Promise
     if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
 
     const contract = await getContractSigner();
-    console.log("contract",contract);
     
     return await contract.setCounselor(wallet, isEntering) as ethers.Transaction;
 }
