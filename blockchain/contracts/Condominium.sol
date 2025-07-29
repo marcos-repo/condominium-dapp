@@ -59,6 +59,11 @@ contract Condominium is ICondominium {
         require(!_isCounselor(resident), "Um conselheiro nao pode ser removido");
         
         uint index = _residentIndex[resident];
+        
+        if(index == 0) {
+            require(residents[index].wallet == resident, "Morador inexistente");
+        }
+
         uint lastIndex = residents.length - 1;
 
         if(index != lastIndex) {
