@@ -14,7 +14,7 @@ export async function loginApi(wallet: string, secret: string, timestamp: number
     return undefined;
 }
 
-type ApiResident = {
+export type ApiResident = {
     wallet: string;
     name: string;
     profile: Profile;
@@ -38,5 +38,5 @@ export async function updateApiResident(wallet: string, resident: ApiResident): 
 }
 
 export async function deleteApiResident(wallet: string): Promise<void> {
-    await axios.patch(`${API_URL}/residents/${wallet}`);
+    await axios.delete(`${API_URL}/residents/${wallet}`);
 }

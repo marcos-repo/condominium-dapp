@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import SideBar from "../../components/SideBar";
-import {addResident, getResident, setCounselor, type Resident} from "../../services/Web3Service";
+import {addResident, getResident, Profile, setCounselor, type Resident} from "../../services/Web3Service";
 import Footer from "../../components/Footer";
 import SwitchInput from "../../components/SwitchInput";
 import { useNavigate, useParams } from "react-router-dom";
 import { isManager, isResident, logOut } from "../../services/LoginData";
 import Loader from "../../components/Loader";
 import { ethers } from "ethers";
+import { addApiResident, getApiResident, updateApiResident, type ApiResident } from "../../services/ApiService";
 
 function Resident() {
     
@@ -14,6 +15,7 @@ function Resident() {
     let { wallet } = useParams();
 
     const [resident, setResident] = useState<Resident>({} as Resident);
+    const [apiResident, setApiResident] = useState<ApiResident>({} as ApiResident);
 
     const [message, setMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -27,9 +29,13 @@ function Resident() {
         if(wallet) {
             setIsLoading(true);
 
-            getResident(wallet)
-                .then((resident) => {
-                    setResident(resident);
+            const promiseBlockchain = getResident(wallet);
+            const promiseBackend = getApiResident(wallet);
+
+            Promise.all([promiseBlockchain, promiseBackend])
+                .then((result) => {
+                    setResident(result[0]);
+                     setApiResident(result[1]);
                 })
                 .catch((error) => {
                     setMessage(error.message);
@@ -37,18 +43,24 @@ function Resident() {
                 .finally(() => {
                     setIsLoading(false);
                 });
-        }
-        
+        }        
       }, [wallet]);
 
-    function onResidentChange2(evt: React.ChangeEvent<HTMLInputElement>) {
+    function onResidentChange(evt: React.ChangeEvent<HTMLInputElement>) {
         setResident(prevState => ({
             ...prevState,
             [evt.target.id]: evt.target.value
         }));
     }
 
-    function onResidentChange(evt: React.ChangeEvent<HTMLInputElement>) {
+    function onApiResidentChange(evt: React.ChangeEvent<HTMLInputElement>) {
+        setApiResident(prevState => ({
+            ...prevState,
+            [evt.target.id]: evt.target.value
+        }));
+    }
+
+    function onResidentChange2(evt: React.ChangeEvent<HTMLInputElement>) {
         const { id, value } = evt.target;
 
         setResident(prevState => {
@@ -68,9 +80,12 @@ function Resident() {
             setMessage("Conectando a carteira. Aguarde...");
 
             if(!wallet) {
-                addResident(resident.wallet, resident.residence)
-                .then((tx) => {
-                    navigate("/residents?tx=" + tx.hash);
+                const promiseBlockchain = addResident(resident.wallet, resident.residence);
+                const promiseBackend = addApiResident({...apiResident, profile: Profile.RESIDENT, wallet: resident.wallet});
+                
+                Promise.all([promiseBlockchain, promiseBackend])
+                .then((result) => {
+                    navigate("/residents?tx=" + result[0].hash);
                 })
                 .catch((error) => {
                     setMessage(error.message);
@@ -80,9 +95,18 @@ function Resident() {
                 );
             }
             else {
-                setCounselor(resident.wallet, resident.isCounselor)
-                .then((tx) => {
-                    navigate("/residents?tx=" + tx.hash);
+                const profile = resident.isCounselor ? Profile.COUNSELOR : Profile.RESIDENT;
+                const promises = [];
+
+                if(apiResident.profile !== profile) {
+                    promises.push(setCounselor(resident.wallet, resident.isCounselor));
+                }
+
+                promises.push(updateApiResident(wallet, {...apiResident, profile, wallet}));
+                
+                Promise.all(promises)
+                .then(() => {
+                    navigate("/residents?tx=" + wallet);
                 })
                 .catch((error) => {
                     setMessage(error.message);
@@ -122,7 +146,7 @@ function Resident() {
                             <div className="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3">
                                 <h6 className="text-white text-capitalize ps-3">
                                     <i className="material-icons opacity-10 me-2">group</i>
-                                    Moradores
+                                    { wallet ? "Editar " : "Novo "} Morador
                                 </h6>
                             </div>
                             </div>
@@ -152,6 +176,39 @@ function Resident() {
                                         </div>
                                     </div>
                                 </div>
+                                <div className="row ms-3">
+                                    <div className="col-md-6 mb-3">
+                                        <div className="form-group">
+                                            <label htmlFor="name">Nome</label>
+                                            <div className="input-group input-group-outline">
+                                                <input className="form-control" type="text" id="name" value={apiResident.name || ""}
+                                                    onChange={onApiResidentChange}></input>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="row ms-3">
+                                    <div className="col-md-6 mb-3">
+                                        <div className="form-group">
+                                            <label htmlFor="name">Telefone</label>
+                                            <div className="input-group input-group-outline">
+                                                <input className="form-control" type="tel" id="phone" value={apiResident.phone || ""}
+                                                    placeholder="+5521999999999" onChange={onApiResidentChange}></input>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="row ms-3">
+                                    <div className="col-md-6 mb-3">
+                                        <div className="form-group">
+                                            <label htmlFor="name">E-mail</label>
+                                            <div className="input-group input-group-outline">
+                                                <input className="form-control" type="email" id="email" value={apiResident.email || ""}
+                                                    placeholder="email@email.com" onChange={onApiResidentChange}></input>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 {
                                     wallet ? 
                                     <>
@@ -170,7 +227,7 @@ function Resident() {
                                 }
 
                                 {
-                                    isManager() ? 
+                                    wallet && isManager() ? 
                                     <>
                                     <div className="row ms-3">
                                         <div className="col-md-6 mb-3">

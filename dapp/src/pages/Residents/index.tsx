@@ -8,6 +8,7 @@ import ResidentRow from "./ResidentRow";
 import Loader from "../../components/Loader";
 import Pagination from "../../components/Pagination";
 import { ethers, toNumber } from "ethers";
+import { deleteApiResident } from "../../services/ApiService";
 
 function Residents() {
 
@@ -31,9 +32,13 @@ function Residents() {
 
         setIsLoading(true);
 
-        removeResident(wallet)
+        //<TODO>: Adicionar um tratamento para realizar as exclusões de forma atômica
+        const promiseBlockchain = removeResident(wallet);
+        const promiseBackend = deleteApiResident(wallet);
+
+        Promise.all([promiseBlockchain, promiseBackend])
             .then((tx) => {
-                navigate("/residents?tx=" + tx.hash);
+                navigate("/residents?tx=" + tx[0].hash);
             })
             .catch((error) => setError(error.message))
             .finally(() => setIsLoading(false));

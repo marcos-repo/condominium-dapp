@@ -4,7 +4,7 @@ import { getToken, logOut } from './LoginData';
 
 const instance = axios.create({
     headers: {
-        "Content-Type": "applications/json;",
+        "Content-Type": "application/json",
         "Authorization": getToken() || ""
     }
 });
