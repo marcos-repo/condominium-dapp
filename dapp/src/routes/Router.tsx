@@ -1,12 +1,13 @@
 import {Route, BrowserRouter, Routes, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
-import Topics from '../pages/Topics';
 import type { JSX } from 'react';
 import { getLoginData, isCouncil, isManager, isResident, logOut } from '../services/LoginData';
 import Transfer from '../pages/Transfer';
 import Settings from '../pages/Settings';
+import Topics from '../pages/Topics/Index';
+import TopicPage from '../pages/Topics/TopicPage';
+import ResidentPage from '../pages/Residents/ResidentPage';
 import Residents from '../pages/Residents/Index';
-import Resident from '../pages/Residents/Resident';
 
 
 
@@ -60,11 +61,24 @@ function Router() {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Login />} />
+
+                <Route path="/topics/edit/:title" element={
+                    <PrivateRoute>
+                        <TopicPage />
+                    </PrivateRoute>
+                } />
+                <Route path="/topics/new" element={
+                    <PrivateRoute>
+                        <TopicPage />
+                    </PrivateRoute>
+                } />
                 <Route path="/topics" element={
                     <PrivateRoute>
                         <Topics />
                     </PrivateRoute>
                 } />
+                
+
                 <Route path="/residents" element={
                     <CouncilRoute>
                         <Residents />
@@ -72,12 +86,12 @@ function Router() {
                 } />
                 <Route path="/residents/new" element={
                     <CouncilRoute>
-                        <Resident />
+                        <ResidentPage />
                     </CouncilRoute>
                 } />
                 <Route path="/residents/edit/:wallet" element={
                     <ManagerRoute>
-                        <Resident />
+                        <ResidentPage />
                     </ManagerRoute>
                 } />
                 <Route path="/transfer" element={

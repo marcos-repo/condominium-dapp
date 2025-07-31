@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SideBar from "../../components/SideBar";
-import {addResident, getResident, Profile, setCounselor, type Resident} from "../../services/Web3Service";
+import {addResident, getResident, Profile, setCounselor, type Resident as ResidentPage} from "../../services/Web3Service";
 import Footer from "../../components/Footer";
 import SwitchInput from "../../components/SwitchInput";
 import { useNavigate, useParams } from "react-router-dom";
@@ -9,12 +9,12 @@ import Loader from "../../components/Loader";
 import { ethers } from "ethers";
 import { addApiResident, getApiResident, updateApiResident, type ApiResident } from "../../services/ApiService";
 
-function Resident() {
+function ResidentPage() {
     
     const navigate = useNavigate();
     let { wallet } = useParams();
 
-    const [resident, setResident] = useState<Resident>({} as Resident);
+    const [resident, setResident] = useState<ResidentPage>({} as ResidentPage);
     const [apiResident, setApiResident] = useState<ApiResident>({} as ApiResident);
 
     const [message, setMessage] = useState<string>("");
@@ -266,4 +266,4 @@ function Resident() {
     )
 }
 
-export default Resident;
+export default ResidentPage;

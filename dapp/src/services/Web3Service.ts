@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import CondominiumABI from "../contracts/abi/Condominium.abi.json";
 import { getLoginAccount, getLoginData, getProfile, type LoginResult } from "./LoginData";
-import Resident from "../pages/Residents/Resident";
 import { loginApi } from "./ApiService";
 
 const CONTRACT_ADDRESS =  import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -19,6 +18,56 @@ export type Resident = {
     isManager: boolean;
     residence: number;
     nextPayment: number;
+};
+
+export enum Category {
+    NONE = -1,
+    DECISION = 0,
+    SPENT = 1,
+    CHANGE_QUOTA = 2,
+    CHANGE_MANAGER = 3
+}
+
+export function getStatus(status: Status) {
+    switch(status) {
+        case Status.VOTING: return "EM VOTAÇÃO";
+        case Status.APPROVED: return "APROVADO";
+        case Status.DELETED: return "REMOVIDO";
+        case Status.DENIED: return "NEGADO";
+        case Status.SPENT: return "GASTO";
+        default: return "AGUARDANDO";
+    }
+}
+
+export function getCategory(category: Category) {
+    switch(category) {
+        case Category.DECISION: return "Decisão";
+        case Category.SPENT: return "Despesa";
+        case Category.CHANGE_QUOTA: return "Alteração de Cota";
+        case Category.CHANGE_MANAGER: return "Eleição de Síndico";
+        default: return "-";
+    }
+}
+
+export enum Status {
+    IDLE = 0,
+    VOTING = 1,
+    APPROVED = 2, 
+    DENIED = 3,
+    SPENT = 4, 
+    DELETED = 5
+}
+
+export type Topic = {
+    title: string;
+    description: string;
+    category: Category;
+    amount: ethers.BigNumberish;
+    responsible: string;
+    status?: Status;
+    createDate: ethers.BigNumberish;
+    startDate: ethers.BigNumberish;
+    endDate: ethers.BigNumberish;
 };
 
 function getProvider(): ethers.BrowserProvider {
@@ -162,6 +211,62 @@ export async function getResidents(page: number = 1, pageSize: number = 10): Pro
         totalCount: result.totalCount
     } as ResidentPage;
 }
+
+
+export type TopicPage = {
+    topics: Topic[];
+    totalCount: ethers.BigNumberish;
+}
+
+export async function getTopic(title: string): Promise<Topic> {
+    const contract = getContract();
+    return await contract.getTopic(title) as Topic;
+}
+
+export async function getTopics(page: number = 1, pageSize: number = 10): Promise<TopicPage> {
+    const contract = getContract();
+    const result = await contract.getTopics(page, pageSize) as TopicPage;
+
+    const topicsArr = [... result.topics];
+
+    const topics = topicsArr;//.filter(r => r.createdDate);
+
+    return {
+        topics,
+        totalCount: result.totalCount
+    } as TopicPage;
+}
+
+export async function addTopic(topic: Topic): Promise<ethers.Transaction> {
+    const contract = await getContractSigner();
+    
+    topic.amount = ethers.toBigInt(topic.amount || 0);
+
+    return await contract.addTopic(
+                                    topic.title, 
+                                    topic.description, 
+                                    topic.category, 
+                                    topic.amount, 
+                                    topic.responsible || ethers.ZeroAddress) as ethers.Transaction;
+}
+
+export async function editTopic(topicToEdit: string, description: string, amount: ethers.BigNumberish, responsible: string): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico ou um Conselheiro podem executar esta operação.");
+
+    const contract = await getContractSigner();
+    
+    amount = ethers.toBigInt(amount || 0);
+    return await contract.editTopic(topicToEdit, description, amount, responsible) as ethers.Transaction;
+}
+
+export async function removeTopic(wallet: string): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
+
+    const contract = await getContractSigner();
+    
+    return await contract.removeTopic(wallet) as ethers.Transaction;
+}
+
 
 function compareEthAccounts(account1: string, account2: string) : boolean {
     return account1.toLowerCase() === account2.toLowerCase()
