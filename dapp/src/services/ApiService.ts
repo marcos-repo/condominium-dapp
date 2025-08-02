@@ -44,7 +44,6 @@ export async function deleteApiResident(wallet: string): Promise<void> {
 
 export async function uploadTopicFile(topicTitle: string, file: File): Promise<void> {
     const hash = keccak256(toUtf8Bytes(topicTitle));
-    console.log("hash - uploadTopicFile - front",hash);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -64,7 +63,6 @@ export async function uploadTopicFile(topicTitle: string, file: File): Promise<v
 export async function getTopicFiles(topicTitle: string): Promise<string[]> {
     
     const hash = keccak256(toUtf8Bytes(topicTitle));
-    console.log("hash - getTopicFiles - front",hash);
 
     const response = await axios.get(`${API_URL}/topicFiles/${hash}`);
     return response.data as string[];
@@ -72,7 +70,6 @@ export async function getTopicFiles(topicTitle: string): Promise<string[]> {
 
 export async function deleteTopicFiles(topicTitle: string, fileName: string): Promise<void> {
     const hash = keccak256(toUtf8Bytes(topicTitle));
-    console.log("hash - deleteTopicFiles - front",hash);
     
     await axios.delete(`${API_URL}/topicFiles/${hash}/${fileName}`);
 }

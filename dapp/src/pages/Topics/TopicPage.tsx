@@ -4,7 +4,7 @@ import Footer from "../../components/Footer";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
 import { ethers } from "ethers";
-import { addTopic, Category, editTopic, getStatus, getTopic, Status, type Topic } from "../../services/Web3Service";
+import { addTopic, Category, closeVoting, compareEthAccounts, editTopic, getStatus, getTopic, getVotes, openVoting, Options, Status, vote, type Topic, type Vote } from "../../services/Web3Service";
 import TopicCategory from "../../components/TopicCategory";
 import { getLoginAccount, isManager } from "../../services/LoginData";
 import TopicFiles from "./TopicFiles";
@@ -15,7 +15,7 @@ function TopicPage() {
     let { title } = useParams();
 
     const [topic, setTopic] = useState<Topic>({} as Topic);
-
+    const [votes, setVotes] = useState<Vote[]>([]);
     const [message, setMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -26,13 +26,20 @@ function TopicPage() {
         if(title) {
             setIsLoading(true);
 
-            const promiseBlockchain = getTopic(title);
-            //const promiseBackend = getApiTopic(title);
+            const topicPromise = getTopic(title);
 
-            Promise.all([promiseBlockchain /*, promiseBackend*/])
+            Promise.all([topicPromise])
                 .then((result) => {
                     setTopic(result[0]);
-                    setStatus(result[0].status || 0);
+                    const _status = Number(result[0].status);           
+                    setStatus(_status);
+
+                    if(_status !== Status.IDLE && _status !== Status.DELETED) {
+                        return getVotes(title);
+                    }                        
+                })
+                .then((v) => {
+                    setVotes(v || []);
                 })
                 .catch((error) => {
                     setMessage(error.message);
@@ -52,6 +59,7 @@ function TopicPage() {
     function getAmount(): string{
         return topic.amount ? topic.amount.toString() : "0";
     }
+
     function showResponsible(): boolean {
         const category = parseInt(`${topic.category}`);
         return [Category.CHANGE_MANAGER, Category.SPENT].includes(category);
@@ -117,10 +125,94 @@ function TopicPage() {
         }
     }
 
+    function btnOpenVotingClick() {
+        setIsLoading(true);
+        setMessage("Conectando a carteira. Aguarde...");
+        const promiseBlockchain = openVoting(topic.title);
+        Promise.all([promiseBlockchain])
+        .then((result) => {
+            navigate("/topics?tx=" + result[0].hash);
+        })
+        .catch((error) => {
+            setMessage(error.message);
+        })
+        .finally(() => 
+            setIsLoading(false)
+        );
+
+    }
+
+    function btnCloseVotingClick() {
+       setIsLoading(true);
+        setMessage("Conectando a carteira. Aguarde...");
+        const promiseBlockchain = closeVoting(topic.title);
+        //const promiseBackend = addApiTopic();
+        Promise.all([promiseBlockchain])
+        .then((result) => {
+            navigate("/topics?tx=" + result[0].hash);
+        })
+        .catch((error) => {
+            setMessage(error.message);
+        })
+        .finally(() => 
+            setIsLoading(false)
+        );
+    }
+
+    function btnVoteClick(option: Options) {
+        setIsLoading(true);
+        let voto = "";
+        switch (option) {
+            case Options.YES:
+                voto = "Sim"
+                break;
+            case Options.NO:
+                voto = "Não"
+                break;
+        
+            default:
+                voto = "Abster-se"
+                break;
+        }
+
+        if(window.confirm(`Confirma o Voto '${voto}' para o tópico '${topic.title}'?`)) {
+            setMessage("Conectando a carteira. Aguarde...");
+
+            vote(topic.title, option)
+            .then((result) => {
+                navigate("/topics?tx=" + result.hash);
+            })
+            .catch((error) => {
+                setMessage(error.message);
+            })
+            .finally(() => 
+                setIsLoading(false)
+            );
+        }
+        else {
+            setMessage("");
+        }
+    }
+
     function getDate(timestamp: ethers.BigNumberish) {
          const dateMs = ethers.toNumber(timestamp || 0) * 1000;
         const text = !dateMs ? "-" : new Date(dateMs).toLocaleDateString('pt-BR');
         return text;
+    }
+
+    function alreadyVoted() {
+        const account = getLoginAccount() || "";
+
+        return votes && votes.length && 
+                    votes.find(x => compareEthAccounts(x.resident, account));
+    }
+
+    function getVotingScore() {
+        const yes = votes.filter(x => x.option == Options.YES).length;
+        const no = votes.filter(x => x.option == Options.NO).length;
+        const abs = votes.filter(x => x.option == Options.ABSTENTION).length;
+
+        return `SIM: ${yes} - ABSTENÇÃO: ${abs} - NÃO: ${no}`;
     }
 
     return (
@@ -183,7 +275,7 @@ function TopicPage() {
                                                 <div className="form-group">
                                                     <label htmlFor="status">Status</label>
                                                     <div className="input-group input-group-outline">
-                                                        <input className="form-control" type="text" id="status" value={getStatus(topic.status || 0) || ""}
+                                                        <input className="form-control" type="text" id="status" value={getStatus(status) || ""}
                                                             onChange={onTopicChange} disabled={true}></input>
                                                     </div>
                                                 </div>
@@ -233,7 +325,7 @@ function TopicPage() {
                                                     <label htmlFor="createdDate">Data de Criação</label>
                                                     <div className="input-group input-group-outline">
                                                         <input className="form-control" type="text" id="createdDate" value={getDate(topic.createDate || 0)}
-                                                            onChange={onTopicChange} disabled={true}></input>
+                                                            disabled={true}></input>
                                                     </div>
                                                 </div>
                                             </div>
@@ -249,7 +341,7 @@ function TopicPage() {
                                                     <label htmlFor="startDate">Início da Votação</label>
                                                     <div className="input-group input-group-outline">
                                                         <input className="form-control" type="text" id="startDate" value={getDate(topic.startDate || 0)}
-                                                            onChange={onTopicChange} disabled={true}></input>
+                                                            disabled={true}></input>
                                                     </div>
                                                 </div>
                                             </div>
@@ -265,7 +357,7 @@ function TopicPage() {
                                                     <label htmlFor="endDate">Início da Votação</label>
                                                     <div className="input-group input-group-outline">
                                                         <input className="form-control" type="text" id="endDate" value={getDate(topic.endDate || 0)}
-                                                            onChange={onTopicChange} disabled={true}></input>
+                                                            disabled={true}></input>
                                                     </div>
                                                 </div>
                                             </div>
@@ -273,22 +365,67 @@ function TopicPage() {
                                     </> : <></>
                                 }
                                 {
-                                    !title || (isManager() && status == Status.IDLE)? 
+                                    votes && votes.length ? 
                                     <>
-                                    <div className="row ms-3">
-                                        <div className="col-md-12 mb-3">
-                                            <button className="btn bg-gradient-dark me-2" onClick={btnSaveClick}>
-                                                <i className="material-icons opacity-10 me-2">save</i>
-                                                Salvar Informações
-                                            </button>
-                                            <span className="text-danger">
-                                                {message}
-                                            </span>
+                                        <div className="row ms-3">
+                                            <div className="col-md-6 mb-3">
+                                                <div className="form-group">
+                                                    <label htmlFor="endDate">Placar da Votação</label>
+                                                    <div className="input-group input-group-outline">
+                                                        <input className="form-control" type="text" id="endDate" value={getVotingScore()}
+                                                            disabled={true}></input>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
                                     </> : <></>
                                 }
-
+                                <div className="row ms-3">
+                                    <div className="col-md-12 mb-3">
+                                        {
+                                            !title || (isManager() && status == Status.IDLE)? 
+                                            <>
+                                                <button className="btn bg-gradient-dark me-2" onClick={btnSaveClick}>
+                                                    <i className="material-icons opacity-10 me-2">save</i>
+                                                    Salvar Informações
+                                                </button>
+                                                <button className="btn bg-gradient-success me-2" onClick={btnOpenVotingClick}>
+                                                    <i className="material-icons opacity-10 me-2">lock_open</i>
+                                                    Abrir Votação
+                                                </button>
+                                            </> : <></>
+                                        }
+                                        {
+                                            !title || (isManager() && status == Status.VOTING)? 
+                                            <>
+                                                <button className="btn bg-gradient-danger me-2" onClick={btnCloseVotingClick}>
+                                                    <i className="material-icons opacity-10 me-2">lock</i>
+                                                    Encerrar Votação
+                                                </button>
+                                            </> : <></>
+                                        }
+                                        {
+                                            !alreadyVoted() && title && status == Status.VOTING ? 
+                                            <>
+                                                <button className="btn bg-gradient-success me-2" onClick={()=> btnVoteClick(Options.YES)}>
+                                                    <i className="material-icons opacity-10 me-2">thumb_up</i>
+                                                    Sim
+                                                </button>
+                                                <button className="btn bg-gradient-warning me-2" onClick={()=> btnVoteClick(Options.ABSTENTION)}>
+                                                    <i className="material-icons opacity-10 me-2">thumbs_up_down</i>
+                                                    Abster-se
+                                                </button>
+                                                <button className="btn bg-gradient-danger me-2" onClick={()=> btnVoteClick(Options.NO)}>
+                                                    <i className="material-icons opacity-10 me-2">thumb_down</i>
+                                                    Não
+                                                </button>
+                                            </> : <></>
+                                        }
+                                        <span className="text-danger">
+                                            {message}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         </div>

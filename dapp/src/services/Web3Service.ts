@@ -28,17 +28,6 @@ export enum Category {
     CHANGE_MANAGER = 3
 }
 
-export function getStatus(status: Status) {
-    switch(status) {
-        case Status.VOTING: return "EM VOTAÇÃO";
-        case Status.APPROVED: return "APROVADO";
-        case Status.DELETED: return "REMOVIDO";
-        case Status.DENIED: return "NEGADO";
-        case Status.SPENT: return "GASTO";
-        default: return "AGUARDANDO";
-    }
-}
-
 export function getCategory(category: Category) {
     switch(category) {
         case Category.DECISION: return "Decisão";
@@ -58,6 +47,17 @@ export enum Status {
     DELETED = 5
 }
 
+export function getStatus(status: Status) {
+    switch(status) {
+        case Status.VOTING: return "EM VOTAÇÃO";
+        case Status.APPROVED: return "APROVADO";
+        case Status.DELETED: return "REMOVIDO";
+        case Status.DENIED: return "NEGADO";
+        case Status.SPENT: return "GASTO";
+        default: return "AGUARDANDO";
+    }
+}
+
 export type Topic = {
     title: string;
     description: string;
@@ -69,6 +69,21 @@ export type Topic = {
     startDate: ethers.BigNumberish;
     endDate: ethers.BigNumberish;
 };
+
+export enum Options {
+    EMPTY = 0,
+    YES = 1,
+    NO = 2,
+    ABSTENTION = 3
+}
+
+export type Vote = {
+    resident: string;
+    residence: number;
+    timestamp: number;
+    option: Options;
+};
+
 
 function getProvider(): ethers.BrowserProvider {
     if(!window.ethereum) {
@@ -267,7 +282,43 @@ export async function removeTopic(wallet: string): Promise<ethers.Transaction> {
     return await contract.removeTopic(wallet) as ethers.Transaction;
 }
 
+export async function openVoting(topicTitle: string): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico ou um Conselheiro podem executar esta operação.");
+    const contract = await getContractSigner();
+    
+    return await contract.openVoting(topicTitle) as ethers.Transaction;
+}
 
-function compareEthAccounts(account1: string, account2: string) : boolean {
+export async function closeVoting(topicTitle: string): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico ou um Conselheiro podem executar esta operação.");
+    const contract = await getContractSigner();
+    
+    return await contract.closeVoting(topicTitle) as ethers.Transaction;
+}
+
+export async function payQuota(residenceId: number, value: ethers.BigNumberish): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico ou um Conselheiro podem executar esta operação.");
+    const contract = await getContractSigner();
+    
+    return await contract.payQuota(residenceId, {value: value}) as ethers.Transaction;
+}
+
+export async function getQuota(): Promise<ethers.BigNumberish> {
+    const contract = getContract();
+    return await contract.getQuota() as ethers.BigNumberish;
+}
+
+export async function getVotes(topicTitle: string): Promise<Vote[]> {
+    const contract = getContract();
+    return await contract.getVotes(topicTitle) as Vote[];
+}
+
+export async function vote(topicTitle: string, option: Options): Promise<ethers.Transaction> {
+    const contract = await getContractSigner();
+    
+    return await contract.vote(topicTitle, option) as ethers.Transaction;
+}
+
+export function compareEthAccounts(account1: string, account2: string) : boolean {
     return account1.toLowerCase() === account2.toLowerCase()
 }

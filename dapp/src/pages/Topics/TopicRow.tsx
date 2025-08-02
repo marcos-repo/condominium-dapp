@@ -26,7 +26,8 @@ function TopicRow(props: Props) {
     }
 
     function _getCategory(category: Category) {
-        const text = getCategory(parseInt(category.toString()));
+        //a categoria está vindo da blockchain como bigInt
+        const text = getCategory(Number(category));
 
         return <p className="text-xs font-weight-bold mb-0 px-3">{text}</p>
     }
@@ -34,7 +35,8 @@ function TopicRow(props: Props) {
     function getStatus(status: Status) {
         let text = "", className = "badge py-1 ms-3 ";
 
-        switch(status) {
+        //o status está vindo da blockchain como bigInt
+        switch(Number(status)) {
             case Status.VOTING: 
                 text = "EM VOTAÇÃO";
                 className += "bg-warning";
@@ -52,9 +54,9 @@ function TopicRow(props: Props) {
                 className += "bg-danger";
                 break;
             case Status.SPENT: 
-                break;
                 text = "GASTO";
                 className += "bg-success";
+                break;
             default: 
                 text = "AGUARDANDO";
                 className += "bg-secondary";

@@ -6,8 +6,9 @@ import Transfer from '../pages/Transfer';
 import Settings from '../pages/Settings';
 import Topics from '../pages/Topics/Index';
 import TopicPage from '../pages/Topics/TopicPage';
-import ResidentPage from '../pages/Residents/ResidentPage';
 import Residents from '../pages/Residents/Index';
+import Quota from '../pages/Quota';
+import ResidentPage from '../pages/Residents/ResidentPage';
 
 
 
@@ -94,6 +95,13 @@ function Router() {
                         <ResidentPage />
                     </ManagerRoute>
                 } />
+
+                <Route path="/quota" element={
+                    <PrivateRoute>
+                        <Quota />
+                    </PrivateRoute>
+                } />
+
                 <Route path="/transfer" element={
                     <ManagerRoute>
                         <Transfer />

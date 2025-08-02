@@ -16,7 +16,6 @@ function TopicRow(props: Props) {
 
     useEffect(() => {
         loadFiles();
-        console.log(props.status, Status.IDLE);
     },[]);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -25,8 +24,6 @@ function TopicRow(props: Props) {
     const [uploadMessage, setUploadMessage] = useState<string>("");
 
     function onDeleteFile(fileName: string) {
-        console.log(props.status, Status.IDLE);
-
         if(props.status !== Status.IDLE) {
             return setUploadMessage("Este arquivo não pode ser deletado.");
         }
