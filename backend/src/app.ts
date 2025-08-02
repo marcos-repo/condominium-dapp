@@ -26,7 +26,7 @@ app.use('/login/', LoginRouter);
 app.use('/residents/', authenticationMiddleware, ResidentRouter);
 
 const uploadMiddleware = multer({ dest: "files"});
-app.use('topicfiles', authenticationMiddleware, uploadMiddleware.single("file"), TopicFileRouter);
+app.use('/topicFiles/', authenticationMiddleware, uploadMiddleware.single("file"), TopicFileRouter);
 
 app.use('/', (req: Request, res: Response, next: NextFunction) => {
     res.send('{ status: OK }');

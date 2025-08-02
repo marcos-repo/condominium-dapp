@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import { addTopic, Category, editTopic, getStatus, getTopic, Status, type Topic } from "../../services/Web3Service";
 import TopicCategory from "../../components/TopicCategory";
 import { getLoginAccount, isManager } from "../../services/LoginData";
+import TopicFiles from "./TopicFiles";
 
 function TopicPage() {
     
@@ -18,6 +19,9 @@ function TopicPage() {
     const [message, setMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    
+    const [status, setStatus] = useState<Status>(0);
+
     useEffect(() => {
         if(title) {
             setIsLoading(true);
@@ -28,7 +32,7 @@ function TopicPage() {
             Promise.all([promiseBlockchain /*, promiseBackend*/])
                 .then((result) => {
                     setTopic(result[0]);
-                    // setApiTopic(result[1]);
+                    setStatus(result[0].status || 0);
                 })
                 .catch((error) => {
                     setMessage(error.message);
@@ -39,7 +43,9 @@ function TopicPage() {
         }   
         else {
             topic.responsible = getLoginAccount() || "";
-        }     
+        }   
+        
+        
       }, [title]);
 
 
@@ -56,10 +62,10 @@ function TopicPage() {
         return [Category.CHANGE_QUOTA, Category.SPENT].includes(category);
     }
 
-    function isClosed(): boolean {
-        const status = parseInt(`${topic.status || 0}`);
-        return [Status.APPROVED, Status.DENIED, Status.DELETED, Status.SPENT].includes(status);
-    }
+    // function isClosed(): boolean {
+    //     const status = parseInt(`${topic.status || 0}`);
+    //     return [Status.APPROVED, Status.DENIED, Status.DELETED, Status.SPENT].includes(status);
+    // }
 
     function onTopicChange(evt: React.ChangeEvent<HTMLInputElement>) {
         setTopic(prevState => ({
@@ -267,7 +273,7 @@ function TopicPage() {
                                     </> : <></>
                                 }
                                 {
-                                    !title || (isManager() && topic.status == Status.IDLE)? 
+                                    !title || (isManager() && status == Status.IDLE)? 
                                     <>
                                     <div className="row ms-3">
                                         <div className="col-md-12 mb-3">
@@ -287,6 +293,11 @@ function TopicPage() {
                         </div>
                         </div>
                     </div>
+                    {
+                        title ? 
+                            <TopicFiles title={title || ""} status={status} /> :
+                            <></>
+                    }
                     <Footer />
                 </div>
             </main>
