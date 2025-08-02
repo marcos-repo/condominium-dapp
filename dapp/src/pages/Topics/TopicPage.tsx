@@ -216,7 +216,7 @@ function TopicPage() {
     }
 
     function btnTransferClick() {
-        //if(1===1 || isManager() && status == Status.APPROVED && topic.category == Category.SPENT) {
+        if(isManager() && status == Status.APPROVED && topic.category == Category.SPENT) {
             if(confirm(`Confirma a transferência de ${topic.amount} ETH para o carteira ${topic.responsible}?`)) {
 
                 transfer(topic.title, topic.amount)
@@ -230,7 +230,7 @@ function TopicPage() {
                     setIsLoading(false)
                 );
             }
-        //}
+        }
     }
 
     return (
@@ -440,7 +440,7 @@ function TopicPage() {
                                             </> : <></>
                                         }
                                         {
-                                            1===1 || isManager() && status == Status.APPROVED && topic.category == Category.SPENT ? 
+                                            isManager() && status == Status.APPROVED && topic.category == Category.SPENT ? 
                                             <>
                                                 <button className="btn bg-gradient-dark me-2" onClick={btnTransferClick}>
                                                     <i className="material-icons opacity-10 me-2">payments</i>
