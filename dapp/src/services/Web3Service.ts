@@ -319,6 +319,21 @@ export async function vote(topicTitle: string, option: Options): Promise<ethers.
     return await contract.vote(topicTitle, option) as ethers.Transaction;
 }
 
+export async function transfer(topicTitle: string, amount: ethers.BigNumberish): Promise<ethers.Transaction> {
+    if(getProfile() !== Profile.MANAGER) throw new Error("Somente o síndico pode executar esta operação.");
+    const contract = await getContractSigner();
+    
+    return await contract.transfer(topicTitle, amount) as ethers.Transaction;
+}
+
+export async function getBalance(): Promise<string> {
+    const address = await getAddress();
+    const provider = getProvider();
+    const balance = await provider.getBalance(address);
+
+    return ethers.formatEther(balance);
+}
+
 export function compareEthAccounts(account1: string, account2: string) : boolean {
     return account1.toLowerCase() === account2.toLowerCase()
 }

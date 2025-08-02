@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
-import {getAddress, upgradeContract} from "../services/Web3Service";
+import {getAddress, getBalance, upgradeContract} from "../services/Web3Service";
 import Footer from "../components/Footer";
 import Loader from "../components/Loader";
 
 function Settings() {
 
     const [contract, setContract] = useState<string>("");
+    const [balance, setBalance] = useState<string>("");
     const [message, setMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -15,6 +16,10 @@ function Settings() {
         getAddress()
             .then((addr) => {
                 setContract(addr);
+                return getBalance()
+            })
+            .then((balance) => {
+                setBalance(balance);
             })
             .catch((error) => {
                 setMessage(error.message);
@@ -71,6 +76,15 @@ function Settings() {
                                                 <input className="form-control" type="text" id="contract" value={contract}
                                                     onChange={e => setContract(e.target.value)}></input>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="row ms-3">
+                                    <div className="col-md-6 mb-3">
+                                        <div className="form-group">
+                                            <label htmlFor="balance">Saldo do Contrato</label>
+                                            <input className="form-control" type="text" id="balance" 
+                                                value={balance} disabled={true}></input>
                                         </div>
                                     </div>
                                 </div>

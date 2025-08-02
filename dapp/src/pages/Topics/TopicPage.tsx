@@ -4,7 +4,7 @@ import Footer from "../../components/Footer";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
 import { ethers } from "ethers";
-import { addTopic, Category, closeVoting, compareEthAccounts, editTopic, getStatus, getTopic, getVotes, openVoting, Options, Status, vote, type Topic, type Vote } from "../../services/Web3Service";
+import { addTopic, Category, closeVoting, compareEthAccounts, editTopic, getStatus, getTopic, getVotes, openVoting, Options, Status, transfer, vote, type Topic, type Vote } from "../../services/Web3Service";
 import TopicCategory from "../../components/TopicCategory";
 import { getLoginAccount, isManager } from "../../services/LoginData";
 import TopicFiles from "./TopicFiles";
@@ -215,6 +215,24 @@ function TopicPage() {
         return `SIM: ${yes} - ABSTENÇÃO: ${abs} - NÃO: ${no}`;
     }
 
+    function btnTransferClick() {
+        //if(1===1 || isManager() && status == Status.APPROVED && topic.category == Category.SPENT) {
+            if(confirm(`Confirma a transferência de ${topic.amount} ETH para o carteira ${topic.responsible}?`)) {
+
+                transfer(topic.title, topic.amount)
+                .then((result) => {
+                    navigate("/topics?tx=" + result.hash);
+                })
+                .catch((error) => {
+                    setMessage(error.message);
+                })
+                .finally(() => 
+                    setIsLoading(false)
+                );
+            }
+        //}
+    }
+
     return (
         <>
             <SideBar />
@@ -418,6 +436,15 @@ function TopicPage() {
                                                 <button className="btn bg-gradient-danger me-2" onClick={()=> btnVoteClick(Options.NO)}>
                                                     <i className="material-icons opacity-10 me-2">thumb_down</i>
                                                     Não
+                                                </button>
+                                            </> : <></>
+                                        }
+                                        {
+                                            1===1 || isManager() && status == Status.APPROVED && topic.category == Category.SPENT ? 
+                                            <>
+                                                <button className="btn bg-gradient-dark me-2" onClick={btnTransferClick}>
+                                                    <i className="material-icons opacity-10 me-2">payments</i>
+                                                    Transferir Pagamento
                                                 </button>
                                             </> : <></>
                                         }
