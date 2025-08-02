@@ -341,7 +341,10 @@ contract Condominium is ICondominium {
         require(topic.createDate > 0, "Topico inexistente");
         require(topic.status == lib.Status.VOTING, "Somente topicos em votacao podem ser votados");
     
-        uint16 residence = residents[_residentIndex[tx.origin]].residence;
+        uint index = _residentIndex[tx.origin];
+        require(index > 0 || residents[0].wallet == tx.origin, "Morador nao encontrado");
+
+        uint16 residence = residents[index].residence;
         bytes32 topicId = getTopicId(title);
 
         lib.Vote[] memory votes = _votings[topicId];
